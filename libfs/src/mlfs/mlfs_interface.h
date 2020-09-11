@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+void __attribute__((constructor)) init_fs(); 
+void __attribute__((destructor)) shutdown_fs(); 
+
 void init_fs(void);
 void shutdown_fs(void);
 
