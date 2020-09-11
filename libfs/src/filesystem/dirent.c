@@ -278,6 +278,24 @@ int dir_get_entry(struct inode *dir_inode, struct linux_dirent *buf, offset_t of
 
 	return sizeof(struct mlfs_dirent);
 }
+
+int dir_get_entry64(struct inode *dir_inode, struct linux_dirent64 *buf, offset_t off)
+{
+  struct inode *ip;
+  uint8_t *dirent_array;
+  struct mlfs_dirent *de;
+
+  de = get_dirent(dir_inode, off);
+
+  mlfs_assert(de);
+
+  buf->d_ino = de->inum;
+  buf->d_off = (off/sizeof(*de)) * sizeof(struct linux_dirent64);
+  buf->d_reclen = sizeof(struct linux_dirent64);
+  memmove(buf->d_name, de->name, DIRSIZ);
+
+  return sizeof(struct mlfs_dirent);
+}
 	
 /* Workflows when renaming to existing one (newname exists in the directory).
  * Libfs: if it finds existing file, it makes unlink request to previous inode.

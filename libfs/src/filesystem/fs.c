@@ -939,7 +939,13 @@ void stati(struct inode *ip, struct stat *st)
 
 	st->st_dev = ip->dev;
 	st->st_ino = ip->inum;
-	st->st_mode = 0;
+	if(ip->itype == T_DIR)
+	  st->st_mode = S_IFDIR;
+	else if(ip->itype == T_FILE)
+	  st->st_mode = S_IFREG;
+	else
+	  st->st_mode = 0;
+	//      st->st_mode |= S_IRWXU | S_IRWXG | S_IRWXO; /* TODO: set the actual permission */
 	st->st_nlink = ip->nlink;
 	st->st_uid = 0;
 	st->st_gid = 0;

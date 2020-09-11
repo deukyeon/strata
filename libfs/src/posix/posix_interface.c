@@ -583,6 +583,32 @@ size_t mlfs_posix_getdents(int fd, struct linux_dirent *buf,
 	return sizeof(struct linux_dirent);
 }
 
+size_t mlfs_posix_getdents64(int fd, struct linux_dirent64 *buf,
+			     size_t nbytes, offset_t off)
+{
+  struct file *f;
+  int bytes;
+
+  f = &g_fd_table.open_files[fd];
+
+  if (f->ref == 0) {
+    return -EBADF;
+  }
+
+  if (f->type != FD_DIR) {
+    return -EBADF;
+  }
+
+  if (f->off >= f->ip->size) {
+    return 0;
+  }
+
+  bytes = dir_get_entry64(f->ip, buf, f->off);
+  f->off += bytes;
+
+  return sizeof(struct linux_dirent64);
+}
+
 int mlfs_posix_fcntl(int fd, int cmd, void *arg)
 {
 	struct file *f;

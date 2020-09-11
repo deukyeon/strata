@@ -588,8 +588,12 @@ int shim_do_getdents64(int fd, struct linux_dirent64 *buf, size_t count, size_t*
   size_t ret;
 
   if (check_mlfs_fd(fd)) {
-    printf("getdent64 is not supported\n");
-    exit(-1);
+    ret = mlfs_posix_getdents64(get_mlfs_fd(fd), buf, count);
+
+    syscall_trace(__func__, ret, 3, fd, buf, count);
+
+    *result = ret;
+    return 0;
   } else {
     return 1;
   }
