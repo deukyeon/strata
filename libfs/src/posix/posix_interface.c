@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <sys/uio.h>
 
 #include "global/global.h"
 #include "global/types.h"
@@ -224,6 +225,32 @@ int mlfs_posix_write(int fd, uint8_t *buf, size_t count)
 	pthread_rwlock_unlock(&f->rwlock);
 
 	return ret;
+}
+
+int mlfs_posix_writev(int fd, const struct iovec *iov, int iovcnt)
+{
+  int ret;
+  struct file *f;
+
+  f = &g_fd_table.open_files[fd];
+
+  pthread_rwlock_wrlock(&f->rwlock);
+
+  mlfs_assert(f);
+
+  if (f->ref == 0) {
+    panic("file descriptor is wrong\n");
+    return -EBADF;
+  }
+
+  int i;
+  for (i=0; i<iovcnt; ++i) {
+    ret = mlfs_file_write(f, iov[i].iov_base, iov[i].iov_len);
+  }
+
+  pthread_rwlock_unlock(&f->rwlock);
+
+  return ret;
 }
 
 int mlfs_posix_lseek(int fd, int64_t offset, int origin)

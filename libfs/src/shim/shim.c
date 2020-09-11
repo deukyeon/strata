@@ -203,6 +203,21 @@ int shim_do_write(int fd, void *buf, size_t count, size_t* result)
 
 }
 
+int shim_do_writev(int fd, const struct iovec *iov, int iovcnt, ssize_t *result)
+{
+  size_t ret;
+
+  if(check_mlfs_fd(fd)) {
+    ret = mlfs_posix_writev(get_mlfs_fd(fd), iov, iovcnt);
+    syscall_trace(__func__, ret, 3, fd, iov, iovcnt);
+
+    *result = ret;
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
 int shim_do_pwrite64(int fd, void *buf, size_t count, loff_t off, size_t* result)
 {
   size_t ret;
@@ -595,6 +610,7 @@ hook(long syscall_number,
     case SYS_read: return shim_do_read((int)arg0, (void*)arg1, (size_t)arg2, (size_t*)result);
     case SYS_pread64: return shim_do_pread64((int)arg0, (void*)arg1, (size_t)arg2, (loff_t)arg3, (size_t*)result);
     case SYS_write: return shim_do_write((int)arg0, (void*)arg1, (size_t)arg2, (size_t*)result);
+    case SYS_writev: return shim_do_writev((int)arg0, (const struct iovec *)arg1, (int)arg2, (ssize_t*)result);
     case SYS_pwrite64: return shim_do_pwrite64((int)arg0, (void*)arg1, (size_t)arg2, (loff_t)arg3, (size_t*)result);
     case SYS_close: return shim_do_close((int)arg0, (int*)result);
     case SYS_lseek: return shim_do_lseek((int)arg0, (off_t)arg1, (int)arg2, (int*)result);

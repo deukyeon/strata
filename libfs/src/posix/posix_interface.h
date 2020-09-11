@@ -2,6 +2,7 @@
 #define _POSIX_INTERFACE_H_
 
 #include <sys/stat.h>
+#include <sys/uio.h>
 #include "global/global.h"
 
 #ifdef __cplusplus
@@ -14,6 +15,7 @@ int mlfs_posix_creat(char *path, uint16_t mode);
 int mlfs_posix_read(int fd, void *buf, int count);
 int mlfs_posix_pread64(int fd, void *buf, int count, loff_t off);
 int mlfs_posix_write(int fd, void *buf, int count);
+int mlfs_posix_writev(int fd, const struct iovec *iov, int iovcnt);
 int mlfs_posix_lseek(int fd, int64_t offset, int origin);
 int mlfs_posix_mkdir(char *path, unsigned int mode);
 int mlfs_posix_rmdir(char *path);
