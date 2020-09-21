@@ -91,7 +91,7 @@ int shim_do_open(char *filename, int flags, mode_t mode, int* result)
     ret = mlfs_posix_open(filename, flags, mode);
 
     if (!check_mlfs_fd(ret)) {
-      printf("incorrect fd %d: file %s\n", ret, filename);
+      printf("[%s] incorrect fd %d: file %s\n", __func__, ret, filename);
     }
 
     syscall_trace(__func__, ret, 3, filename, flags, mode);
@@ -123,7 +123,7 @@ int shim_do_openat(int dfd, const char *filename, int flags, mode_t mode, int* r
     ret = mlfs_posix_open((char *)filename, flags, mode);
 
     if (!check_mlfs_fd(ret)) {
-      printf("incorrect fd %d: file %s\n", ret, filename);
+      printf("[%s] incorrect fd %d: file %s\n", __func__, ret, filename);
     }
 
     syscall_trace(__func__, ret, 4, filename, dfd, flags, mode);
@@ -147,7 +147,7 @@ int shim_do_creat(char *filename, mode_t mode, int* result)
     ret = mlfs_posix_creat(filename, mode);
 
     if (!check_mlfs_fd(ret)) {
-      printf("incorrect fd %d\n", ret);
+      printf("[%s] incorrect fd %d\n", __func__, ret);
     }
 
     syscall_trace(__func__, ret, 2, filename, mode);
@@ -600,6 +600,44 @@ int shim_do_getdents64(int fd, struct linux_dirent64 *buf, size_t count, size_t*
 
 }
 
+int shim_do_statfs(const char *filename, struct statfs *buf, int *result)
+{
+	printf("%s\n", __func__);
+
+	int ret;
+	char path_buf[PATH_BUF_SIZE];
+
+	memset(path_buf, 0, PATH_BUF_SIZE);
+	collapse_name(filename, path_buf);
+
+	if (strncmp(path_buf, MLFS_PREFIX, 5) != 0){
+		return 1;
+	} else {
+		ret = mlfs_posix_statfs(filename, buf);
+		syscall_trace(__func__, ret, 2, filename, buf);
+
+		*result = ret;
+		return 0;
+	}
+}
+
+int shim_do_fstatfs(int fd, struct statfs *buf, int *result)
+{
+	printf("%s\n", __func__);
+
+	int ret;
+
+	if (check_mlfs_fd(fd)) {
+		ret = mlfs_posix_fstatfs(get_mlfs_fd(fd), buf);
+		syscall_trace(__func__, ret, 2, fd, buf);
+
+		*result = ret;
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
 
 static int
 hook(long syscall_number,
@@ -638,6 +676,8 @@ hook(long syscall_number,
     case SYS_munmap: return shim_do_munmap((void*)arg0, (size_t)arg1, (int*)result);
     case SYS_getdents: return shim_do_getdents((int)arg0, (struct linux_dirent*)arg1, (size_t)arg2, (size_t*)result);
     case SYS_getdents64: return shim_do_getdents64((int)arg0, (struct linux_dirent64*)arg1, (size_t)arg2, (size_t*)result);
+	case SYS_statfs: return shim_do_statfs((const char *)arg0, (struct statfs *)arg2, (int *)result);
+	case SYS_fstatfs: return shim_do_fstatfs((int)arg0, (struct statfs *)arg2, (int *)result);
   }
   return 1;
 }

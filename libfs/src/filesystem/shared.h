@@ -354,6 +354,9 @@ static inline uint64_t hash2(block_key_t k)
 	return XXH64(&k, sizeof(block_key_t), 1);
 }
 
+/* /usr/include/linux/magic.h */
+#define ANON_INODE_FS_MAGIC 0x09041934
+
 #ifdef __cplusplus
 }
 #endif

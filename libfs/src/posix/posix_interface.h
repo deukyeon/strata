@@ -2,6 +2,7 @@
 #define _POSIX_INTERFACE_H_
 
 #include <sys/stat.h>
+#include <sys/statfs.h>
 #include <sys/uio.h>
 #include "global/global.h"
 
@@ -30,6 +31,8 @@ int mlfs_posix_rename(char *oldname, char *newname);
 size_t mlfs_posix_getdents(int fd, struct linux_dirent *buf, size_t count);
 size_t mlfs_posix_getdents64(int fd, struct linux_dirent64 *buf, size_t count);
 int mlfs_posix_fcntl(int fd, int cmd, void *arg);
+int mlfs_posix_statfs(const char *filename, struct statfs *buf);
+int mlfs_posix_fstatfs(int fd, struct statfs *buf);
 
 #ifdef __cplusplus
 }

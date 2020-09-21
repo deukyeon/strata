@@ -628,6 +628,37 @@ int mlfs_posix_fcntl(int fd, int cmd, void *arg)
 	return 0;
 }
 
+int mlfs_posix_statfs(const char *filename, struct statfs *buf)
+{
+	struct inode *inode;
+
+	inode = namei((char *)filename);
+
+	if (!inode) {
+		return -ENOENT;
+	}
+
+	statfsi(inode, buf);
+
+	return 0;
+}
+
+int mlfs_posix_fstatfs(int fd, struct statfs *buf)
+{
+	struct file *f;
+
+	f = &g_fd_table.open_files[fd];
+
+	if (f->ref == 0) 
+		return -EBADF;
+
+	mlfs_assert(f->ip);
+
+	statfsi(f->ip, buf);
+
+	return 0;
+}
+
 #ifdef __cplusplus
 }
 #endif

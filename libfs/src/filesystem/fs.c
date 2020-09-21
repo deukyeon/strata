@@ -960,6 +960,26 @@ void stati(struct inode *ip, struct stat *st)
 	st->st_atime = (time_t)ip->atime.tv_sec;
 }
 
+void statfsi(struct inode *ip, struct statfs *st)
+{
+	mlfs_assert(ip);
+
+	st->f_type = ANON_INODE_FS_MAGIC;
+	st->f_bsize = g_block_size_bytes;   /* Optimal transfer block size */
+	st->f_blocks = sb[ip->dev]->ondisk->ndatablocks;  /* Total data blocks in filesystem */
+	st->f_bfree = sb[ip->dev]->shared_free_list.num_free_blocks;
+	if (sb[ip->dev]->free_lists)
+		st->f_bfree += sb[ip->dev]->free_lists->num_free_blocks;   /* Free blocks in filesystem */
+	st->f_bavail = 0;  /* Free blocks available to unprivileged user */
+	st->f_files = sb[ip->dev]->ondisk->ninodes;   /* Total inodes in filesystem */
+	st->f_ffree = sb[ip->dev]->num_blocks;   /* Free inodes in filesystem */
+	memset(&st->f_fsid, 0, 2 * sizeof(int)); //, ip->inum };    /* Filesystem ID */
+	memcpy(&st->f_fsid + sizeof(int), &ip->inum, sizeof(int));
+	st->f_namelen = MAX_PATH; /* Maximum length of filenames */
+	st->f_frsize = 0;  /* Fragment size (since Linux 2.6) */
+	st->f_flags = 0;   /* Mount flags of filesystem */
+}
+
 // TODO: Now, eviction is simply discarding. Extend this function
 // to evict data to the update log.
 static void evict_read_cache(struct inode *inode, uint32_t n_entries_to_evict)
