@@ -18,7 +18,7 @@ extern int log_fd;
 #define mlfs_log(fmt, ...) \
 	do { \
 		dprintf(log_fd, "[%s():%d] " fmt,  \
-				__func__, __LINE__, __VA_ARGS__); \
+				__func__, __LINE__, ##__VA_ARGS__); \
 		fsync(log_fd); \
 	} while (0)
 #else
@@ -32,7 +32,7 @@ extern int log_fd;
 #define mlfs_debug(fmt, ...) \
 	do { \
 		fprintf(stdout, "[%s():%d] " fmt,  \
-				__func__, __LINE__, __VA_ARGS__); \
+				__func__, __LINE__, ##__VA_ARGS__); \
 	} while (0)
 #else
 #define mlfs_debug(...)
@@ -42,7 +42,7 @@ extern int log_fd;
 #define mlfs_info(fmt, ...) \
 	do { \
 		fprintf(stdout, "[%lu][%s():%d] " fmt,  \
-				get_tid(), __func__, __LINE__, __VA_ARGS__); \
+				get_tid(), __func__, __LINE__, ##__VA_ARGS__); \
 	} while (0)
 #else
 #define mlfs_info(...)
@@ -51,7 +51,7 @@ extern int log_fd;
 #define mlfs_printf(fmt, ...) \
 	do { \
 		fprintf(stdout, "[%s():%d] " fmt,  \
-				__func__, __LINE__, __VA_ARGS__); \
+				__func__, __LINE__, ##__VA_ARGS__); \
 	} while (0)
 
 //void _panic(void) __attribute__((noreturn));

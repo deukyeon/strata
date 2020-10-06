@@ -394,8 +394,8 @@ void read_root_inode(uint8_t dev_id)
 
 	read_ondisk_inode(dev_id, ROOTINO, &_dinode);
 	_dinode.dev = dev_id;
-	mlfs_debug("root inode block %lx size %lu\n",
-			IBLOCK(ROOTINO, disk_sb[dev_id]), dip->size);
+	//mlfs_debug("root inode block %lx size %lu\n",
+			//IBLOCK(ROOTINO, disk_sb[dev_id]), dip->size);
 
 	mlfs_assert(_dinode.itype == T_DIR);
 
@@ -960,6 +960,37 @@ void stati(struct inode *ip, struct stat *st)
 	st->st_atime = (time_t)ip->atime.tv_sec;
 }
 
+void statxi(struct inode *ip, struct statx *st)
+{
+	mlfs_assert(ip);
+
+	st->stx_ino = ip->inum;
+	if(ip->itype == T_DIR)
+	  st->stx_mode = S_IFDIR;
+	else if(ip->itype == T_FILE)
+	  st->stx_mode = S_IFREG;
+	else
+	  st->stx_mode = 0;
+	//      st->stx_mode |= S_IRWXU | S_IRWXG | S_IRWXO; /* TODO: set the actual permission */
+	st->stx_nlink = ip->nlink;
+	st->stx_uid = 0;
+	st->stx_gid = 0;
+	st->stx_size = ip->size;
+	//st->st_blksize = g_block_size_bytes;
+	// This could be incorrect if there is file holes.
+	st->stx_blocks = ip->size / 512;
+
+	st->stx_mtime.tv_sec = (int64_t)ip->mtime.tv_sec;
+	st->stx_mtime.tv_nsec = (uint32_t)ip->mtime.tv_usec * 1000;
+	st->stx_ctime.tv_sec = (int64_t)ip->ctime.tv_sec;
+	st->stx_ctime.tv_nsec = (uint32_t)ip->ctime.tv_usec * 1000;
+	st->stx_atime.tv_sec = (int64_t)ip->atime.tv_sec;
+	st->stx_atime.tv_nsec = (uint32_t)ip->atime.tv_usec * 1000;
+
+	st->stx_dev_major = ip->dev;
+	st->stx_rdev_major = 0;
+}
+
 void statfsi(struct inode *ip, struct statfs *st)
 {
 	mlfs_assert(ip);
@@ -1051,8 +1082,8 @@ int check_log_invalidation(struct fcache_block *_fcache_block)
 	if ((version_diff > 1) || 
 			(version_diff == 1 && 
 			 _fcache_block->log_addr < g_fs_log->next_avail_header)) {
-		mlfs_debug("invalidate: inum %u offset %lu -> addr %lu\n", 
-				ip->inum, _off, _fcache_block->log_addr);
+		//mlfs_debug("invalidate: inum %u offset %lu -> addr %lu\n", 
+				//ip->inum, _off, _fcache_block->log_addr);
 		_fcache_block->log_addr = 0;
 
 		// Delete fcache_block when it is not used for read cache.

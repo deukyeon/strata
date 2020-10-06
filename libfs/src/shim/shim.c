@@ -363,6 +363,26 @@ int shim_do_stat(const char *filename, struct stat *statbuf, int* result)
 
 }
 
+int shim_do_statx(int dirfd, const char *filename, int flags, unsigned int mask, struct statx *statxbuf, int* result)
+{
+  int ret;
+  char path_buf[PATH_BUF_SIZE];
+
+  memset(path_buf, 0, PATH_BUF_SIZE);
+  collapse_name(filename, path_buf);
+
+  if (strncmp(path_buf, MLFS_PREFIX, 5) != 0){
+    return 1;
+  } else {
+    ret = mlfs_posix_statx(filename, statxbuf);
+    syscall_trace(__func__, ret, 2, filename, statxbuf);
+
+    *result = ret;
+    return 0;
+  }
+
+}
+
 int shim_do_lstat(const char *filename, struct stat *statbuf, int* result)
 {
   int ret;
@@ -661,6 +681,7 @@ hook(long syscall_number,
     case SYS_rename: return shim_do_rename((char*)arg0, (char*)arg1, (int*)result);
     case SYS_fallocate: return shim_do_fallocate((int)arg0, (int)arg1, (off_t)arg2, (off_t)arg3, (int*)result);
     case SYS_stat: return shim_do_stat((const char*)arg0, (struct stat*)arg1, (int*)result);
+    case SYS_statx: return shim_do_statx((int)arg0, (const char*)arg1, (int)arg2, (unsigned int)arg3, (struct statx*)arg4, (int*)result);
     case SYS_lstat: return shim_do_lstat((const char*)arg0, (struct stat*)arg1, (int*)result);
     case SYS_fstat: return shim_do_fstat((int)arg0, (struct stat*)arg1, (int*)result);
     case SYS_truncate: return shim_do_truncate((const char*)arg0, (off_t)arg1, (int*)result);

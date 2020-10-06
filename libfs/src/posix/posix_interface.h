@@ -22,6 +22,7 @@ int mlfs_posix_mkdir(char *path, unsigned int mode);
 int mlfs_posix_rmdir(char *path);
 int mlfs_posix_close(int fd);
 int mlfs_posix_stat(const char *filename, struct stat *stat_buf);
+int mlfs_posix_statx(const char *filename, struct statx *stat_buf);
 int mlfs_posix_fstat(int fd, struct stat *stat_buf);
 int mlfs_posix_fallocate(int fd, offset_t offset, offset_t len);
 int mlfs_posix_unlink(const char *filename);

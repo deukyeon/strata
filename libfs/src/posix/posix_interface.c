@@ -382,6 +382,20 @@ int mlfs_posix_fstat(int fd, struct stat *stat_buf)
 	return 0;
 }
 
+int mlfs_posix_statx(const char *filename, struct statx *statx_buf)
+{
+	struct inode *inode;
+
+	inode = namei((char *)filename);
+
+	if (!inode) {
+		return -ENOENT;
+	}
+
+	statxi(inode, statx_buf);
+	return 0;
+}
+
 #define ALLOC_IO_SIZE (64UL << 10)
 int mlfs_posix_fallocate(int fd, offset_t offset, offset_t len)
 {
